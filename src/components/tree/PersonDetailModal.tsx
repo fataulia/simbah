@@ -98,7 +98,6 @@ export default function PersonDetailModal({ person, onClose, onEdit, isAdmin, on
                         isDeceased ? "text-zinc-500 italic" : "text-[var(--foreground)]"
                     )}>
                         {person.name}
-                        {isDeceased && <span className="ml-1 text-base">🥀</span>}
                     </h2>
                     <div className="flex items-center justify-center gap-1.5 mt-2">
                         <span className={cn(

@@ -204,9 +204,8 @@ export default function FamilyMap({ people }: { people: any[] }) {
             >
               <Popup className="premium-popup">
                 <div className="p-3 min-w-[180px] text-center flex flex-col items-center">
-                    <div className="h-14 w-14 rounded-2xl border-4 border-white shadow-lg overflow-hidden mb-3 bg-zinc-50 relative">
+                    <div className={cn("h-14 w-14 rounded-2xl border-4 border-white shadow-lg overflow-hidden mb-3 bg-zinc-50 relative", !!person.isDeceased && "grayscale")}>
                         {person.photoUrl ? <img src={person.photoUrl} alt="" className="h-full w-full object-cover" /> : <User size={24} className="m-auto mt-4" />}
-                        {!!person.isDeceased && <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] flex items-center justify-center text-xs">🥀</div>}
                     </div>
                     <h4 className="text-xs font-medium text-zinc-900 leading-tight">{person.name}</h4>
                     <p className="text-[9px] font-medium text-zinc-400 mt-1 uppercase tracking-widest">Gen {person.generation}</p>

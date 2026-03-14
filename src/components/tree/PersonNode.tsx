@@ -43,12 +43,6 @@ export default function PersonNode({ data }: { data: any }) {
               isDeceased ? "text-stone-200" : (data.gender === 'MALE' ? "text-sky-100 dark:text-sky-900/40" : "text-pink-100 dark:text-pink-900/40")
             )} size={48} />
           )}
-          
-          {isDeceased && (
-            <div className="absolute inset-0 bg-stone-900/30 backdrop-blur-[1px] flex items-center justify-center">
-                 <div className="text-[24px]">🥀</div>
-            </div>
-          )}
         </div>
         
         {isDeceased && (

@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Person {
+  id         String    @id @default(cuid())
+  name       String
+  gender     Gender
+  generation Int       @default(1)
+  birthDate  DateTime?
+  deathDate  DateTime?
+  photoUrl   String?
+  phone      String?
+  address    String?
+  latLong    String?
+  bio        String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  isDeceased Boolean   @default(false)
+  asChild    Child[]
+  partner1At Family[]  @relation("Partner1")
+  partner2At Family[]  @relation("Partner2")
+}
+
+model Family {
+  id         String   @id @default(cuid())
+  partner1Id String
+  partner2Id String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  children   Child[]
+  partner1   Person   @relation("Partner1", fields: [partner1Id], references: [id])
+  partner2   Person?  @relation("Partner2", fields: [partner2Id], references: [id])
+}
+
+model Child {
+  id               String           @id @default(cuid())
+  familyId         String
+  childId          String
+  relationshipType RelationshipType @default(BIOLOGICAL)
+  child            Person           @relation(fields: [childId], references: [id], onDelete: Cascade)
+  family           Family           @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, childId])
+}
+
+model AppConfig {
+  id         String   @id @default("config")
+  accessCode String   @default("simbah123")
+  updatedAt  DateTime @updatedAt
+}
+
+model Admin {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  role      AdminRole @default(ADMIN)
+  createdAt DateTime  @default(now())
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum RelationshipType {
+  BIOLOGICAL
+  ADOPTED
+  STEPCHILD
+}
+
+enum AdminRole {
+  ADMIN
+  SUPERUSER
+}

@@ -1,0 +1,33 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Defines CSS variables for your project based on a theme configuration."
+    },
+    {
+      "name": "@tailwind",
+      "description": "Use the `@tailwind` directive to insert Tailwind's `base`, `components`, `utilities` and `screens` styles into your CSS."
+    },
+    {
+      "name": "@source",
+      "description": "Specifies additional files for Tailwind to scan."
+    },
+    {
+      "name": "@utility",
+      "description": "Defines custom styling utilities."
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Defines custom variants for styling."
+    },
+    {
+      "name": "@config",
+      "description": "Specifies a configuration file for Tailwind."
+    },
+    {
+      "name": "@plugin",
+      "description": "Specifies a Tailwind plugin."
+    }
+  ]
+}

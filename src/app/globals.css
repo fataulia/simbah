@@ -1,26 +1,83 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui;
+  --font-mono: var(--font-geist-mono), ui-mono-font, monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* LIGHT THEME - Professional Contrast */
+  --header-bg: #ffffff;
+  --workspace-bg: #f8f9fa; /* Slightly off-white for the tree area */
+  --foreground: #1c1917;
+  
+  --card: #ffffff;
+  --card-foreground: #1c1917;
+  
+  --node-bg: #ffffff;
+  --node-border: #f1f1f0;
+  --node-text: #1c1917;
+  
+  --primary: #166534;
+  --primary-foreground: #ffffff;
+  
+  --secondary: #f1f5f9;
+  --secondary-foreground: #475569;
+  
+  --border: #e2e8f0;
+  --input: #ffffff;
+  --ring: #10b981;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-theme='dark'] {
+  /* DARK THEME - Deep Midnight Contrast */
+  --header-bg: #1a1d23; /* Darker header */
+  --workspace-bg: #0f1115; /* Professional midnight for tree area */
+  --foreground: #f1f5f9;
+  
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  
+  --node-bg: #1e293b;
+  --node-border: #334155;
+  --node-text: #f1f5f9;
+  
+  --primary: #10b981;
+  --primary-foreground: #000000;
+  
+  --secondary: #334155;
+  --secondary-foreground: #f1f5f9;
+  
+  --border: #334155;
+  --input: #1e293b;
+  --ring: #10b981;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--workspace-bg);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Subtle pattern for the workspace area */
+.workspace-grid {
+  background-color: var(--workspace-bg);
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+[data-theme='dark'] .workspace-grid {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+.premium-header {
+  background-color: var(--header-bg);
+  border-bottom: 2px solid var(--border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='dark'] .premium-header {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }

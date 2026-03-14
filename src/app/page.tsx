@@ -1,65 +1,258 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Share2, Search, Settings, TreeDeciduous, LogOut, UserPlus, Shield, ShieldCheck, Map as MapIcon, LayoutGrid, Sun, Moon } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
+
+import FamilyTree from '@/components/tree/FamilyTree';
+import HierarchyFilter from '@/components/tree/HierarchyFilter';
+import AccessWall from '@/components/auth/AccessWall';
+import PersonForm from '@/components/tree/PersonForm';
+import PersonDetailModal from '@/components/tree/PersonDetailModal';
+import WhitelistManager from '@/components/auth/WhitelistManager';
+
+import { getFamilyData, addPerson, updatePerson, deletePerson } from './actions/tree';
+import { checkAccess, logout, checkIsAdmin, checkIsSuperuser } from './actions/auth';
+import { Person } from '@/lib/mock-data';
+
+// Dynamic import with SSR disabled for Leaflet
+const FamilyMap = dynamic(() => import('@/components/map/FamilyMap'), { 
+  ssr: false,
+  loading: () => <div className="h-[70vh] w-full bg-zinc-100 animate-pulse rounded-[3rem] border-8 border-white" />
+});
 
 export default function Home() {
+  const [viewMode, setViewMode] = useState<'TREE' | 'MAP'>('TREE');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperuser, setIsSuperuser] = useState(false);
+  
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isWhitelistOpen, setIsWhitelistOpen] = useState(false);
+  const [editPerson, setEditPerson] = useState<Person | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [preselectedParentId, setPreselectedParentId] = useState<string | null>(null);
+  const [preselectedPartnerId, setPreselectedPartnerId] = useState<string | null>(null);
+  
+  const [generationFilter, setGenerationFilter] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [familyData, setFamilyData] = useState<{ people: any[], families: any[], children: any[] }>({
+    people: [],
+    families: [],
+    children: []
+  });
+
+  const refreshData = async () => {
+    try {
+      const data = await getFamilyData();
+      setFamilyData({
+        people: data.people,
+        families: data.families,
+        children: data.children
+      });
+    } catch (error) { console.error(error); }
+  };
+
+  useEffect(() => {
+    // Check saved theme
+    const savedTheme = localStorage.getItem('simbah_theme') as 'light' | 'dark';
+    if (savedTheme) setTheme(savedTheme);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('simbah_theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    async function init() {
+      const access = await checkAccess();
+      setHasAccess(access);
+      if (access) {
+        const adminStatus = await checkIsAdmin();
+        setIsAdmin(adminStatus);
+        if (adminStatus) {
+            const superStatus = await checkIsSuperuser();
+            setIsSuperuser(superStatus);
+        }
+        await refreshData();
+      }
+    }
+    init();
+  }, []);
+
+  const handleOpenDetail = (person: Person) => {
+    setSelectedPerson(person);
+  };
+
+  const handleOpenEdit = (person: Person) => {
+    setEditPerson(person);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditPerson(null);
+    setPreselectedParentId(null);
+    setPreselectedPartnerId(null);
+  };
+
+  if (hasAccess === null) return null;
+  if (!hasAccess) return <AccessWall />;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className={cn("flex min-h-screen flex-col transition-colors duration-500", theme === 'dark' ? "bg-[var(--workspace-bg)]" : "bg-[var(--workspace-bg)]")}>
+      {/* Premium Distinct Navigation Bar */}
+      <header className="sticky top-0 z-[100] flex h-16 md:h-20 items-center justify-between px-6 md:px-12 premium-header transition-all duration-300">
+        {/* Brand Section */}
+        <div className="flex items-center gap-4 group">
+          <div className="relative">
+            <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
+            <div className="relative flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 shadow-lg">
+              <TreeDeciduous className="text-white" size={24} />
+            </div>
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-xl md:text-2xl font-medium tracking-tight text-[var(--foreground)]">
+              SiMbah
+            </h1>
+            <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-400">
+              Silsilah Keluarga
+            </p>
+          </div>
+        </div>
+
+        {/* Action Center */}
+        <div className="flex items-center gap-4 md:gap-8">
+          {/* View Mode Island */}
+          <div className="hidden sm:flex p-1.5 rounded-2xl bg-[var(--secondary)] border border-[var(--border)]">
+             <button 
+                onClick={() => setViewMode('TREE')}
+                className={cn(
+                  "flex items-center gap-2 px-6 py-2 text-xs font-medium rounded-xl transition-all duration-300", 
+                  viewMode === 'TREE' 
+                    ? "bg-[var(--header-bg)] text-emerald-600 shadow-sm" 
+                    : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                )}
+             >
+                <LayoutGrid size={14} /> <span>Pohon</span>
+             </button>
+             <button 
+                onClick={() => setViewMode('MAP')}
+                className={cn(
+                  "flex items-center gap-2 px-6 py-2 text-xs font-medium rounded-xl transition-all duration-300", 
+                  viewMode === 'MAP' 
+                    ? "bg-[var(--header-bg)] text-emerald-600 shadow-sm" 
+                    : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                )}
+             >
+                <MapIcon size={14} /> <span>Peta</span>
+             </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle Premium */}
+            <button 
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                className="relative h-10 w-16 md:w-20 rounded-full bg-[var(--secondary)] border border-[var(--border)] p-1 transition-all duration-300"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+                <motion.div 
+                    animate={{ x: theme === 'light' ? 0 : (window.innerWidth < 768 ? 24 : 40) }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className="h-7 w-7 md:h-8 md:w-8 rounded-full bg-[var(--header-bg)] shadow-md flex items-center justify-center text-orange-500 dark:text-yellow-400 z-10"
+                >
+                    {theme === 'light' ? <Sun size={14} /> : <Moon size={14} />}
+                </motion.div>
+            </button>
+
+            <div className="h-8 w-px bg-[var(--border)] mx-1 hidden lg:block" />
+
+            <button 
+                onClick={async () => { if(confirm('Logout?')) { await logout(); window.location.reload(); } }}
+                className="flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-xl border border-[var(--border)] text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-all"
             >
-              Learning
-            </a>{" "}
-            center.
+                <LogOut size={18} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {isAdmin && (
+        <div className="bg-emerald-800/90 backdrop-blur-sm py-1.5 px-8 text-center border-b border-emerald-700/50">
+          <p className="text-[9px] font-medium text-emerald-50/80 uppercase tracking-[0.5em] flex items-center justify-center gap-2">
+            <ShieldCheck size={10} /> Mode Admin Aktif • Berbasis Cloud
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      )}
+
+      {/* Workspace Area - Distinct Background */}
+      <main className="flex-1 overflow-hidden workspace-grid">
+        <div className="max-w-[1600px] mx-auto h-full">
+            {viewMode === 'TREE' ? (
+                <FamilyTree 
+                    initialPeople={familyData.people}
+                    initialFamilies={familyData.families}
+                    initialChildren={familyData.children}
+                    isAdmin={isAdmin}
+                    onEdit={handleOpenDetail}
+                    onAddSpouse={async (id) => {
+                        setEditPerson(null);
+                        setPreselectedPartnerId(id);
+                        setIsFormOpen(true);
+                    }}
+                    onAddChild={async (personId) => {
+                        setEditPerson(null);
+                        setPreselectedParentId(personId);
+                        setIsFormOpen(true);
+                    }}
+                    onRefresh={refreshData}
+                />
+            ) : (
+                <div className="animate-in fade-in duration-700">
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-black text-zinc-900 tracking-tight">Peta Keluarga</h2>
+                        <p className="text-zinc-500 font-medium mt-1">Melihat sebaran lokasi tempat tinggal anggota keluarga besar.</p>
+                    </div>
+                    <FamilyMap people={familyData.people} />
+                </div>
+            )}
         </div>
       </main>
+
+      <AnimatePresence>
+        {isFormOpen && (
+          <PersonForm 
+            onClose={handleCloseForm} 
+            existingPeople={familyData.people} 
+            editPerson={editPerson}
+            preselectedParentId={preselectedParentId || undefined}
+            preselectedPartnerId={preselectedPartnerId || undefined}
+            onSave={async (data) => {
+              const result = editPerson ? await updatePerson(editPerson.id, data) : await addPerson(data);
+              if (result.success) await refreshData();
+              return result;
+            }}
+          />
+        )}
+        {selectedPerson && (
+          <PersonDetailModal 
+            person={selectedPerson} 
+            onClose={() => setSelectedPerson(null)}
+            isAdmin={isAdmin}
+            onEdit={handleOpenEdit}
+          />
+        )}
+        {isWhitelistOpen && <WhitelistManager onClose={() => setIsWhitelistOpen(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
+
+import { cn } from '@/lib/utils';

@@ -2,17 +2,21 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, MapPin, Calendar, FileText, Navigation, User, Heart, Baby, Shield, ExternalLink, MessageCircle } from 'lucide-react';
+import { X, Phone, MapPin, Calendar, FileText, Navigation, User, Heart, Baby, Shield, ExternalLink, MessageCircle, Trash2, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { deletePerson } from '@/app/actions/tree';
 
 interface PersonDetailModalProps {
   person: any;
   onClose: () => void;
   onEdit?: (person: any) => void;
   isAdmin?: boolean;
+  onAddSpouse?: (id: string) => void;
+  onAddChild?: (id: string) => void;
+  onRefresh?: () => void;
 }
 
-export default function PersonDetailModal({ person, onClose, onEdit, isAdmin }: PersonDetailModalProps) {
+export default function PersonDetailModal({ person, onClose, onEdit, isAdmin, onAddSpouse, onAddChild, onRefresh }: PersonDetailModalProps) {
   if (!person) return null;
 
   const isDeceased = !!person.isDeceased;
@@ -29,6 +33,17 @@ export default function PersonDetailModal({ person, onClose, onEdit, isAdmin }: 
   const handleOpenMaps = () => {
     if (!person.latLong) return;
     window.open(`https://www.google.com/maps?q=${person.latLong}`, '_blank');
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`Hapus ${person.name} dari silsilah?`)) return;
+    const result = await deletePerson(person.id);
+    if (result.success) {
+        onRefresh?.();
+        onClose();
+    } else {
+        alert(result.error || "Gagal menghapus.");
+    }
   };
 
   return (
@@ -160,12 +175,38 @@ export default function PersonDetailModal({ person, onClose, onEdit, isAdmin }: 
                 {isAdmin && (
                     <button 
                         onClick={() => { onClose(); onEdit?.(person); }}
-                        className="flex-2 h-10 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium uppercase text-[9px] tracking-[0.2em] hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2"
+                        className="flex-2 h-10 px-4 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium uppercase text-[9px] tracking-[0.2em] hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2"
                     >
                         <Shield size={12} /> Edit Profil
                     </button>
                 )}
             </div>
+
+            {isAdmin && (
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                     <button 
+                         onClick={() => { onClose(); onAddSpouse?.(person.id); }}
+                         className="flex flex-col items-center justify-center h-14 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/30 hover:bg-emerald-200 transition-all"
+                     >
+                         <UserPlus size={16} className="mb-1" />
+                         <span className="text-[8px] font-bold uppercase tracking-wider">Pasangan</span>
+                     </button>
+                     <button 
+                         onClick={() => { onClose(); onAddChild?.(person.id); }}
+                         className="flex flex-col items-center justify-center h-14 rounded-xl bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-sky-800/30 hover:bg-sky-200 transition-all"
+                     >
+                         <Baby size={16} className="mb-1" />
+                         <span className="text-[8px] font-bold uppercase tracking-wider">Anak</span>
+                     </button>
+                     <button 
+                         onClick={handleDelete}
+                         className="flex flex-col items-center justify-center h-14 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800/30 hover:bg-red-200 transition-all"
+                     >
+                         <Trash2 size={16} className="mb-1" />
+                         <span className="text-[8px] font-bold uppercase tracking-wider">Hapus</span>
+                     </button>
+                </div>
+            )}
         </div>
       </motion.div>
     </div>

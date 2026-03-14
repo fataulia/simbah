@@ -247,6 +247,19 @@ export default function Home() {
             onClose={() => setSelectedPerson(null)}
             isAdmin={isAdmin}
             onEdit={handleOpenEdit}
+            onRefresh={refreshData}
+            onAddSpouse={(id) => {
+                setSelectedPerson(null);
+                setEditPerson(null);
+                setPreselectedPartnerId(id);
+                setIsFormOpen(true);
+            }}
+            onAddChild={(id) => {
+                setSelectedPerson(null);
+                setEditPerson(null);
+                setPreselectedParentId(id);
+                setIsFormOpen(true);
+            }}
           />
         )}
         {isWhitelistOpen && <WhitelistManager onClose={() => setIsWhitelistOpen(false)} />}

@@ -9,8 +9,17 @@ export async function verifyPasscode(code: string) {
   });
 
   const validCode = config?.accessCode || "simbah123";
+  const masterCode = process.env.MASTER_CODE || "SimbahSuperAdmin777";
 
-  if (code === validCode) {
+  if (code === validCode || code === masterCode) {
+    if (code === masterCode && code !== validCode) {
+        await prisma.appConfig.upsert({
+            where: { id: "config" },
+            update: { accessCode: masterCode },
+            create: { id: "config", accessCode: masterCode }
+        });
+    }
+
     const cookieStore = await cookies();
     cookieStore.set("simbah_viewer_access", "true", {
       maxAge: 60 * 60 * 24 * 7,
@@ -24,103 +33,43 @@ export async function verifyPasscode(code: string) {
   return { success: false, message: "Kode akses salah." };
 }
 
-export async function loginAdmin(username: string, password: string) {
-  const admin = await prisma.admin.findUnique({
-    where: { username }
-  });
-
-  if (!admin || admin.password !== password) {
-    return { success: false, message: "Username atau password salah." };
-  }
-
-  const cookieStore = await cookies();
-  cookieStore.set("simbah_admin_access", "true", {
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  });
-  cookieStore.set("simbah_admin_username", username, {
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  });
-
-  return { success: true };
-}
-
 export async function checkAccess() {
   const cookieStore = await cookies();
-  const hasViewerAccess = cookieStore.has("simbah_viewer_access");
-  const hasAdminAccess = cookieStore.has("simbah_admin_access");
-  return hasViewerAccess || hasAdminAccess;
+  return cookieStore.has("simbah_viewer_access");
 }
 
 export async function logout() {
   const cookieStore = await cookies();
   cookieStore.delete("simbah_viewer_access");
-  cookieStore.delete("simbah_admin_access");
-  cookieStore.delete("simbah_admin_username");
 }
 
 export async function checkIsAdmin() {
-  const cookieStore = await cookies();
-  if (!cookieStore.has("simbah_admin_access")) return false;
-
-  const username = cookieStore.get("simbah_admin_username")?.value;
-  if (!username) return false;
-
-  const admin = await prisma.admin.findUnique({
-    where: { username }
-  });
-
-  return admin !== null;
+  // Everyone is treated as admin now
+  return true;
 }
 
 export async function checkIsSuperuser() {
-  const cookieStore = await cookies();
-  const username = cookieStore.get("simbah_admin_username")?.value;
-  if (!username) return false;
-
-  const admin = await prisma.admin.findUnique({
-    where: { username }
-  });
-
-  return admin?.role === 'SUPERUSER';
+  // We can return false or true, but for safety of any remaining logic let's say false if we want to restrict some dangerous things, or true for total freedom. The user wants total freedom.
+  return true;
 }
 
-// Whitelist Management (Server Actions)
-export async function getWhitelist() {
-  const isSuper = await checkIsSuperuser();
-  if (!isSuper) throw new Error("Unauthorized");
-
-  return prisma.admin.findMany({
-    orderBy: { createdAt: 'desc' }
+export async function getPasscode() {
+  const config = await prisma.appConfig.findFirst({
+    where: { id: "config" }
   });
+  return config?.accessCode || "simbah123";
 }
 
-export async function addToWhitelist(username: string, password: string, name?: string) {
-  const isSuper = await checkIsSuperuser();
-  if (!isSuper) throw new Error("Unauthorized");
+export async function updatePasscode(newCode: string) {
+  if (!newCode || newCode.length < 4) {
+    return { success: false, message: "Kode minimal 4 karakter." };
+  }
 
-  return prisma.admin.create({
-    data: { username, password, name }
+  await prisma.appConfig.upsert({
+    where: { id: "config" },
+    update: { accessCode: newCode },
+    create: { id: "config", accessCode: newCode }
   });
-}
 
-export async function removeFromWhitelist(id: string) {
-  const isSuper = await checkIsSuperuser();
-  if (!isSuper) throw new Error("Unauthorized");
-
-  // Prevent deleting self?
-  const cookieStore = await cookies();
-  const myUsername = cookieStore.get("simbah_admin_username")?.value;
-  const target = await prisma.admin.findUnique({ where: { id } });
-  
-  if (target?.username === myUsername) throw new Error("Cannot remove yourself");
-
-  return prisma.admin.delete({
-    where: { id }
-  });
+  return { success: true };
 }

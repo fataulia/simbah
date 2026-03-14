@@ -10,7 +10,7 @@ import HierarchyFilter from '@/components/tree/HierarchyFilter';
 import AccessWall from '@/components/auth/AccessWall';
 import PersonForm from '@/components/tree/PersonForm';
 import PersonDetailModal from '@/components/tree/PersonDetailModal';
-import WhitelistManager from '@/components/auth/WhitelistManager';
+import SettingsModal from '@/components/tree/SettingsModal';
 
 import { getFamilyData, addPerson, updatePerson, deletePerson } from './actions/tree';
 import { checkAccess, logout, checkIsAdmin, checkIsSuperuser } from './actions/auth';
@@ -26,11 +26,11 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<'TREE' | 'MAP'>('TREE');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const [isAdmin, setIsAdmin] = useState(true); // Default to true now
-  const [isSuperuser, setIsSuperuser] = useState(false);
+  const isAdmin = true; // Hardcoded true
+  const isSuperuser = true; // Hardcoded true
   
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isWhitelistOpen, setIsWhitelistOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [editPerson, setEditPerson] = useState<Person | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [preselectedParentId, setPreselectedParentId] = useState<string | null>(null);
@@ -77,10 +77,6 @@ export default function Home() {
       const access = await checkAccess();
       setHasAccess(access);
       if (access) {
-        setIsAdmin(true); // Hardcode true
-        
-        const superStatus = await checkIsSuperuser();
-        setIsSuperuser(superStatus);
         await refreshData();
       }
     }
@@ -124,7 +120,7 @@ export default function Home() {
               SiMbah
             </h1>
             <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-400">
-              Silsilah Keluarga
+              Silsilah Simbah
             </p>
           </div>
         </div>
@@ -158,20 +154,10 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Add Person Button */}
-            <button
-                onClick={() => {
-                    setEditPerson(null);
-                    setPreselectedParentId(null);
-                    setPreselectedPartnerId(null);
-                    setPreselectedFamilyId(null);
-                    setIsFormOpen(true);
-                }}
-                className="flex items-center gap-2 h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all font-medium text-xs tracking-wide"
-            >
-                <UserPlus size={14} /> <span className="hidden sm:inline">Tambah</span>
-            </button>
+
+
             <div className="h-8 w-px bg-[var(--border)] mx-1" />
+
             {/* Theme Toggle Premium */}
             <button 
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
@@ -187,6 +173,14 @@ export default function Home() {
             </button>
 
             <div className="h-8 w-px bg-[var(--border)] mx-1 hidden lg:block" />
+
+            <button 
+                onClick={() => setIsSettingsOpen(true)}
+                className="flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-xl border border-[var(--border)] text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+                title="Pengaturan Akses"
+            >
+                <Settings size={20} />
+            </button>
 
             <button 
                 onClick={async () => { if(confirm('Logout?')) { await logout(); window.location.reload(); } }}
@@ -276,7 +270,7 @@ export default function Home() {
             }}
           />
         )}
-        {isWhitelistOpen && <WhitelistManager onClose={() => setIsWhitelistOpen(false)} />}
+        {isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} />}
       </AnimatePresence>
     </div>
   );

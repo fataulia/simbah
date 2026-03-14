@@ -55,14 +55,7 @@ model AppConfig {
   updatedAt  DateTime @updatedAt
 }
 
-model Admin {
-  id        String    @id @default(cuid())
-  username  String    @unique
-  password  String
-  name      String?
-  role      AdminRole @default(ADMIN)
-  createdAt DateTime  @default(now())
-}
+
 
 enum Gender {
   MALE
@@ -75,7 +68,4 @@ enum RelationshipType {
   STEPCHILD
 }
 
-enum AdminRole {
-  ADMIN
-  SUPERUSER
-}
+

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, UserPlus, Trash2, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { X, UserPlus, Trash2, ShieldCheck, ShieldAlert, User } from 'lucide-react';
 import { getWhitelist, addToWhitelist, removeFromWhitelist } from '@/app/actions/auth';
 
 interface WhitelistManagerProps {
@@ -11,7 +11,8 @@ interface WhitelistManagerProps {
 
 export default function WhitelistManager({ onClose }: WhitelistManagerProps) {
   const [list, setList] = useState<any[]>([]);
-  const [newEmail, setNewEmail] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -33,14 +34,15 @@ export default function WhitelistManager({ onClose }: WhitelistManagerProps) {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEmail) return;
+    if (!newUsername || !newPassword) return;
     try {
-      await addToWhitelist(newEmail, newName);
-      setNewEmail('');
+      await addToWhitelist(newUsername, newPassword, newName);
+      setNewUsername('');
+      setNewPassword('');
       setNewName('');
       loadList();
     } catch (err) {
-      alert("Gagal menambah email. Mungkin sudah terdaftar?");
+      alert("Gagal menambah admin. Mungkin username sudah terpakai?");
     }
   };
 
@@ -75,7 +77,7 @@ export default function WhitelistManager({ onClose }: WhitelistManagerProps) {
               <ShieldCheck size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zinc-900 tracking-tight">Kelola Whitelist Admin</h2>
+              <h2 className="text-xl font-bold text-zinc-900 tracking-tight">Kelola Admin</h2>
               <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">Kontrol Panel Superuser</p>
             </div>
           </div>
@@ -86,26 +88,38 @@ export default function WhitelistManager({ onClose }: WhitelistManagerProps) {
 
         <div className="p-8 space-y-8">
           {/* Add Form */}
-          <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-[1fr,1.2fr,auto] gap-3 bg-zinc-50 p-6 rounded-[2rem] border border-zinc-100">
-            <input 
-              type="text" 
-              placeholder="Nama (Opsional)" 
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              className="h-12 rounded-xl border border-zinc-200 bg-white px-4 text-sm focus:border-emerald-500 outline-none"
-            />
-            <input 
-              required
-              type="email" 
-              placeholder="Email Google" 
-              value={newEmail}
-              onChange={e => setNewEmail(e.target.value)}
-              className="h-12 rounded-xl border border-zinc-200 bg-white px-4 text-sm focus:border-emerald-500 outline-none"
-            />
-            <button type="submit" className="h-12 px-6 bg-zinc-900 text-white rounded-xl font-bold text-sm hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-zinc-200">
-              <UserPlus size={18} />
-              Tambah
-            </button>
+          <form onSubmit={handleAdd} className="flex flex-col gap-3 bg-zinc-50 p-6 rounded-[2rem] border border-zinc-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input 
+                type="text" 
+                placeholder="Nama (Opsional)" 
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                className="h-12 rounded-xl border border-zinc-200 bg-white px-4 text-sm focus:border-emerald-500 outline-none w-full"
+              />
+              <input 
+                required
+                type="text" 
+                placeholder="Username Admin" 
+                value={newUsername}
+                onChange={e => setNewUsername(e.target.value)}
+                className="h-12 rounded-xl border border-zinc-200 bg-white px-4 text-sm focus:border-emerald-500 outline-none w-full"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-[1fr,auto] gap-3">
+              <input 
+                required
+                type="password" 
+                placeholder="Password" 
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="h-12 rounded-xl border border-zinc-200 bg-white px-4 text-sm focus:border-emerald-500 outline-none w-full"
+              />
+              <button type="submit" className="h-12 px-8 bg-zinc-900 text-white rounded-xl font-bold text-sm hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-zinc-200">
+                <UserPlus size={18} />
+                Tambah
+              </button>
+            </div>
           </form>
 
           {/* List */}
@@ -113,16 +127,16 @@ export default function WhitelistManager({ onClose }: WhitelistManagerProps) {
             <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-2">Daftar Admin Aktif</h3>
             <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
               {isLoading ? (
-                <p className="text-center py-8 text-sm text-zinc-400">Loading whitelist...</p>
+                <p className="text-center py-8 text-sm text-zinc-400">Loading admin list...</p>
               ) : list.map(item => (
                 <div key={item.id} className="flex items-center justify-between p-4 bg-white border border-zinc-100 rounded-2xl hover:border-emerald-100 hover:bg-emerald-50/10 transition-all group">
                   <div className="flex items-center gap-3">
                     <div className={item.role === 'SUPERUSER' ? "text-emerald-600" : "text-zinc-400"}>
-                      {item.role === 'SUPERUSER' ? <ShieldAlert size={20} /> : <Mail size={18} />}
+                      {item.role === 'SUPERUSER' ? <ShieldAlert size={20} /> : <User size={18} />}
                     </div>
                     <div>
                       <p className="text-sm font-bold text-zinc-900">{item.name || 'Admin'}</p>
-                      <p className="text-[10px] font-medium text-zinc-500">{item.email}</p>
+                      <p className="text-[10px] font-medium text-zinc-500">@{item.username}</p>
                     </div>
                     {item.role === 'SUPERUSER' && (
                       <span className="text-[9px] font-black bg-zinc-900 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter">Super</span>
@@ -144,7 +158,7 @@ export default function WhitelistManager({ onClose }: WhitelistManagerProps) {
 
         <div className="bg-zinc-50 p-6 text-center border-t border-zinc-100 mt-auto">
           <p className="text-[10px] text-zinc-400 font-medium">
-            Sistem Whitelist ini memastikan hanya email terdaftar yang bisa masuk sebagai Admin.
+            Sistem admin ini memastikan hanya yang memiliki username dan password yang bisa mengedit silsilah.
           </p>
         </div>
       </motion.div>

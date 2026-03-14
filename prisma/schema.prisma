@@ -57,7 +57,8 @@ model AppConfig {
 
 model Admin {
   id        String    @id @default(cuid())
-  email     String    @unique
+  username  String    @unique
+  password  String
   name      String?
   role      AdminRole @default(ADMIN)
   createdAt DateTime  @default(now())

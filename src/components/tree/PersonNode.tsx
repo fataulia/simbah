@@ -88,29 +88,27 @@ export default function PersonNode({ data }: { data: any }) {
 
       <Handle type="source" position={Position.Bottom} className="!opacity-0 shadow-none !border-none" />
 
-      {/* Admin Menu */}
-      {isAdmin && (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-3 group-hover:translate-y-0 z-50">
-            <button 
-                onClick={(e) => { e.stopPropagation(); data.onAddSpouse?.(data.id); }}
-                className="flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-900 dark:bg-stone-50 text-stone-50 dark:text-stone-950 shadow-xl hover:bg-emerald-600 transition-all hover:scale-110 active:scale-95"
-            >
-                <UserPlus size={16} />
-            </button>
-            <button 
-                onClick={(e) => { e.stopPropagation(); data.onAddChild?.(data.id); }}
-                className="flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-900 dark:bg-stone-50 text-stone-50 dark:text-stone-950 shadow-xl hover:bg-sky-600 transition-all hover:scale-110 active:scale-95"
-            >
-                <Baby size={16} />
-            </button>
-            <button 
-                onClick={(e) => { e.stopPropagation(); data.onDelete?.(data.id); }}
-                className="flex h-9 w-9 items-center justify-center rounded-2xl bg-red-500 text-stone-50 shadow-xl hover:bg-red-600 transition-all hover:scale-110 active:scale-95"
-            >
-                <Trash2 size={16} />
-            </button>
-        </div>
-      )}
+      {/* Action Menu */}
+      <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-3 group-hover:translate-y-0 z-50">
+          <button 
+              onClick={(e) => { e.stopPropagation(); data.onAddSpouse?.(data.id); }}
+              className="flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-900 dark:bg-stone-50 text-stone-50 dark:text-stone-950 shadow-xl hover:bg-emerald-600 transition-all hover:scale-110 active:scale-95"
+          >
+              <UserPlus size={16} />
+          </button>
+          <button 
+              onClick={(e) => { e.stopPropagation(); data.onAddChild?.(data.id); }}
+              className="flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-900 dark:bg-stone-50 text-stone-50 dark:text-stone-950 shadow-xl hover:bg-sky-600 transition-all hover:scale-110 active:scale-95"
+          >
+              <Baby size={16} />
+          </button>
+          <button 
+              onClick={(e) => { e.stopPropagation(); data.onDelete?.(data.id); }}
+              className="flex h-9 w-9 items-center justify-center rounded-2xl bg-red-500 text-stone-50 shadow-xl hover:bg-red-600 transition-all hover:scale-110 active:scale-95"
+          >
+              <Trash2 size={16} />
+          </button>
+      </div>
     </div>
   );
 }

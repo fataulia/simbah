@@ -88,16 +88,14 @@ export default function PersonDetail({ person, onClose, isAdmin, onEdit, onRefre
                     </div>
                 </div>
 
-                {isAdmin && (
-                    <div className="flex gap-2 mt-6">
-                        <button onClick={() => {
-                            onClose();
-                            onEdit?.(person);
-                        }} className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-zinc-900 text-white font-bold text-sm hover:bg-emerald-600 transition-all">
-                            <Edit size={16} /> Edit Profil
-                        </button>
-                    </div>
-                )}
+                <div className="flex gap-2 mt-6">
+                    <button onClick={() => {
+                        onClose();
+                        onEdit?.(person);
+                    }} className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-zinc-900 text-white font-bold text-sm hover:bg-emerald-600 transition-all">
+                        <Edit size={16} /> Edit Profil
+                    </button>
+                </div>
 
                 <div className="mt-10 space-y-8">
                     {/* Life Dates */}

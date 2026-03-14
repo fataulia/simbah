@@ -18,6 +18,8 @@ interface PersonFormProps {
   editPerson?: any | null;
   preselectedParentId?: string;
   preselectedPartnerId?: string;
+  preselectedFamilyId?: string;
+  isAdmin?: boolean;
 }
 
 export default function PersonForm({ 
@@ -26,7 +28,9 @@ export default function PersonForm({
   onSave, 
   editPerson,
   preselectedParentId,
-  preselectedPartnerId
+  preselectedPartnerId,
+  preselectedFamilyId,
+  isAdmin
 }: PersonFormProps) {
   const [formData, setFormData] = useState({
     name: '',
@@ -42,6 +46,7 @@ export default function PersonForm({
     photoUrl: '',
     parentId: preselectedParentId || '',
     partnerId: preselectedPartnerId || '',
+    familyId: preselectedFamilyId || '',
   });
 
   const [isUploading, setIsUploading] = useState(false);
@@ -54,7 +59,14 @@ export default function PersonForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (preselectedParentId) {
+    if (preselectedFamilyId) {
+        // If we know the family, we can guess the generation from partner1
+        const family = existingPeople.find(x => x.id === preselectedFamilyId); // wait, family id is not in existingPeople
+        // Actually, let's just use default generation or pass generation separately, 
+        // but for now let's set it to some known parent's generation + 1 if possible.
+        // It's safer to let the user set the generation manually if we can't infer it easily without full family object.
+        // So we do nothing here, let the user fill the generation.
+    } else if (preselectedParentId) {
         const p = existingPeople.find(x => x.id === preselectedParentId);
         if (p) setFormData(prev => ({ ...prev, generation: p.generation + 1 }));
     } else if (preselectedPartnerId) {
@@ -79,6 +91,7 @@ export default function PersonForm({
         photoUrl: editPerson.photoUrl || '',
         parentId: '', 
         partnerId: '',
+        familyId: '',
       });
     }
   }, [editPerson]);
@@ -167,7 +180,7 @@ export default function PersonForm({
           <div className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-stone-900 px-8 py-6 backdrop-blur-md">
             <div className="flex flex-col">
                 <h2 className="text-xl font-medium text-stone-900 dark:text-stone-100 tracking-tight">
-                    {editPerson ? 'Edit Profil' : preselectedParentId ? 'Tambah Anak' : preselectedPartnerId ? 'Tambah Pasangan' : 'Tambah Anggota'}
+                    {editPerson ? 'Edit Profil' : (preselectedParentId || preselectedFamilyId) ? 'Tambah Anak' : preselectedPartnerId ? 'Tambah Pasangan' : 'Tambah Anggota'}
                 </h2>
                 {editPerson && <p className="text-[10px] font-medium text-stone-400 dark:text-stone-500 uppercase tracking-widest mt-0.5">ID: {editPerson.id}</p>}
             </div>

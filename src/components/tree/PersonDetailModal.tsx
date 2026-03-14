@@ -166,46 +166,41 @@ export default function PersonDetailModal({ person, onClose, onEdit, isAdmin, on
             <div className="mt-8 flex gap-2">
                 <button 
                     onClick={onClose}
-                    style={{ backgroundColor: 'var(--secondary)', color: 'var(--secondary-foreground)', borderColor: 'var(--border)' }}
-                    className="flex-1 h-10 rounded-xl font-medium uppercase text-[9px] tracking-[0.2em] hover:opacity-80 transition-all border shadow-sm"
+                    className="flex-1 h-12 rounded-2xl bg-slate-50 border border-slate-100 font-bold uppercase text-[10px] text-slate-500 tracking-widest hover:bg-slate-100 transition-all shadow-sm"
                 >
                     Tutup
                 </button>
-                {isAdmin && (
-                    <button 
-                        onClick={() => { onClose(); onEdit?.(person); }}
-                        className="flex-2 h-10 px-4 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium uppercase text-[9px] tracking-[0.2em] hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2"
-                    >
-                        <Shield size={12} /> Edit Profil
-                    </button>
-                )}
+                <button 
+                    onClick={() => { onClose(); onEdit?.(person); }}
+                    className="flex-[2] h-12 px-4 rounded-2xl bg-white border border-slate-100 text-slate-800 font-bold uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2"
+                >
+                    <Shield size={14} className="text-slate-600" /> Edit Profil
+                </button>
             </div>
 
-            {isAdmin && (
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                     <button 
-                         onClick={() => { onClose(); onAddSpouse?.(person.id); }}
-                         className="flex flex-col items-center justify-center h-14 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/30 hover:bg-emerald-200 transition-all"
-                     >
-                         <UserPlus size={16} className="mb-1" />
-                         <span className="text-[8px] font-bold uppercase tracking-wider">Pasangan</span>
-                     </button>
-                     <button 
-                         onClick={() => { onClose(); onAddChild?.(person.id); }}
-                         className="flex flex-col items-center justify-center h-14 rounded-xl bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-sky-800/30 hover:bg-sky-200 transition-all"
-                     >
-                         <Baby size={16} className="mb-1" />
-                         <span className="text-[8px] font-bold uppercase tracking-wider">Anak</span>
-                     </button>
-                     <button 
-                         onClick={handleDelete}
-                         className="flex flex-col items-center justify-center h-14 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800/30 hover:bg-red-200 transition-all"
-                     >
-                         <Trash2 size={16} className="mb-1" />
-                         <span className="text-[8px] font-bold uppercase tracking-wider">Hapus</span>
-                     </button>
-                </div>
-            )}
+            <div className={`mt-3 grid grid-cols-3 gap-2`}>
+                 <button 
+                     onClick={() => { onClose(); onAddSpouse?.(person.id); }}
+                     className="flex flex-col items-center justify-center h-16 rounded-2xl bg-[#e6efeb] text-[#00b87c] border border-[rgba(0,184,124,0.2)] hover:bg-[#d8e6df] transition-all"
+                 >
+                     <UserPlus size={18} className="mb-1" />
+                     <span className="text-[9px] font-bold uppercase tracking-wider">Pasangan</span>
+                 </button>
+                 <button 
+                     onClick={() => { onClose(); onAddChild?.(person.id); }}
+                     className="flex flex-col items-center justify-center h-16 rounded-2xl bg-[#e0eaef] text-[#0095ff] border border-[rgba(0,149,255,0.2)] hover:bg-[#d1dde6] transition-all"
+                 >
+                     <Baby size={18} className="mb-1" />
+                     <span className="text-[9px] font-bold uppercase tracking-wider">Anak</span>
+                 </button>
+                 <button 
+                     onClick={handleDelete}
+                     className="flex flex-col items-center justify-center h-16 rounded-2xl bg-[#f0dedd] text-[#ff5c5c] border border-[rgba(255,92,92,0.2)] hover:bg-[#e6d0cf] transition-all"
+                 >
+                     <Trash2 size={18} className="mb-1" />
+                     <span className="text-[9px] font-bold uppercase tracking-wider">Hapus</span>
+                 </button>
+            </div>
         </div>
       </motion.div>
     </div>

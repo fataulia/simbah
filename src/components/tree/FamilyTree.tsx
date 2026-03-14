@@ -19,6 +19,8 @@ import PersonDetail from './PersonDetail';
 import { buildGraph } from '@/lib/graphBuilder';
 import { getLayoutedElements } from '@/lib/layoutEngine';
 import { deletePerson } from '@/app/actions/tree';
+import { Download } from 'lucide-react';
+import { exportToVectorPDF } from '@/lib/exportVectorPdf';
 
 const nodeTypes = {
   person: PersonNode,
@@ -33,6 +35,7 @@ interface FamilyTreeProps {
   onEdit?: (person: any) => void;
   onAddSpouse?: (id: string) => void;
   onAddChild?: (personId: string) => void;
+  onAddChildToFamily?: (familyId: string) => void;
   onRefresh?: () => void;
 }
 
@@ -44,6 +47,7 @@ export default function FamilyTree({
   onEdit,
   onAddSpouse,
   onAddChild,
+  onAddChildToFamily,
   onRefresh
 }: FamilyTreeProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -51,6 +55,7 @@ export default function FamilyTree({
   const [selectedPerson, setSelectedPerson] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const [isExporting, setIsExporting] = useState(false);
 
   const toggleCollapse = useCallback((id: string) => {
     setCollapsedIds(prev => {
@@ -109,6 +114,7 @@ export default function FamilyTree({
     );
 
     const nodesWithData = rawNodes.map(node => {
+
         if (node.type === 'person') {
             const personId = node.data.id;
             // Only show hide/collapse for "Bloodline" members
@@ -153,6 +159,15 @@ export default function FamilyTree({
                     isAdmin // Pass the role flag
                 }
             };
+        } else if (node.type === 'family') {
+            return {
+                ...node,
+                data: {
+                    ...node.data,
+                    onAddChildToFamily,
+                    isAdmin
+                }
+            };
         }
         return node;
     });
@@ -165,7 +180,7 @@ export default function FamilyTree({
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
     setIsLoading(false);
-  }, [visibleData, initialPeople, initialFamilies, toggleCollapse, collapsedIds, onAddSpouse, onAddChild, onEdit, onRefresh, setNodes, setEdges]);
+  }, [visibleData, initialPeople, initialFamilies, toggleCollapse, collapsedIds, onAddSpouse, onAddChild, onAddChildToFamily, onEdit, onRefresh, setNodes, setEdges]);
 
   useEffect(() => {
     performLayout();
@@ -200,6 +215,28 @@ export default function FamilyTree({
             nodeBorderRadius={4}
         />
       </ReactFlow>
+
+      {/* Export Button */}
+      <div className="absolute top-4 right-4 z-[100] flex gap-2">
+        <button
+          onClick={async () => {
+            setIsExporting(true);
+            try {
+              await exportToVectorPDF(nodes, edges);
+            } catch (err) {
+              console.error("Export error", err);
+              alert("Gagal mengexport PDF");
+            } finally {
+              setIsExporting(false);
+            }
+          }}
+          disabled={isExporting}
+          className="flex items-center gap-2 px-4 py-2 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-full shadow-lg hover:shadow-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed min-w-[140px] justify-center"
+        >
+          <Download size={16} className={isExporting ? "animate-bounce text-emerald-500" : ""} />
+          {isExporting ? "Menyiapkan..." : "Cetak PDF"}
+        </button>
+      </div>
 
       <AnimatePresence>
         {isLoading && (

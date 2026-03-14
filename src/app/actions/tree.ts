@@ -56,8 +56,15 @@ export async function addPerson(data: any) {
       } as any,
     });
 
-    // Handle initial parent link (Single parent family by default)
-    if (data.parentId) {
+    // Handle family link (Prioritize explicit familyId, fallback to parentId)
+    if (data.familyId) {
+        await (prisma as any).child.create({
+            data: {
+                familyId: data.familyId,
+                childId: person.id,
+            }
+        });
+    } else if (data.parentId) {
         let family = await (prisma as any).family.findFirst({
             where: { OR: [{ partner1Id: data.parentId }, { partner2Id: data.parentId }] }
         });

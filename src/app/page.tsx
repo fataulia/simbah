@@ -26,7 +26,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<'TREE' | 'MAP'>('TREE');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true); // Default to true now
   const [isSuperuser, setIsSuperuser] = useState(false);
   
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -35,6 +35,7 @@ export default function Home() {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [preselectedParentId, setPreselectedParentId] = useState<string | null>(null);
   const [preselectedPartnerId, setPreselectedPartnerId] = useState<string | null>(null);
+  const [preselectedFamilyId, setPreselectedFamilyId] = useState<string | null>(null);
   
   const [generationFilter, setGenerationFilter] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,12 +77,10 @@ export default function Home() {
       const access = await checkAccess();
       setHasAccess(access);
       if (access) {
-        const adminStatus = await checkIsAdmin();
-        setIsAdmin(adminStatus);
-        if (adminStatus) {
-            const superStatus = await checkIsSuperuser();
-            setIsSuperuser(superStatus);
-        }
+        setIsAdmin(true); // Hardcode true
+        
+        const superStatus = await checkIsSuperuser();
+        setIsSuperuser(superStatus);
         await refreshData();
       }
     }
@@ -102,6 +101,7 @@ export default function Home() {
     setEditPerson(null);
     setPreselectedParentId(null);
     setPreselectedPartnerId(null);
+    setPreselectedFamilyId(null);
   };
 
   if (hasAccess === null) return null;
@@ -158,6 +158,20 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Add Person Button */}
+            <button
+                onClick={() => {
+                    setEditPerson(null);
+                    setPreselectedParentId(null);
+                    setPreselectedPartnerId(null);
+                    setPreselectedFamilyId(null);
+                    setIsFormOpen(true);
+                }}
+                className="flex items-center gap-2 h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all font-medium text-xs tracking-wide"
+            >
+                <UserPlus size={14} /> <span className="hidden sm:inline">Tambah</span>
+            </button>
+            <div className="h-8 w-px bg-[var(--border)] mx-1" />
             {/* Theme Toggle Premium */}
             <button 
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
@@ -184,14 +198,7 @@ export default function Home() {
         </div>
       </header>
 
-      {isAdmin && (
-        <div className="bg-emerald-800/90 backdrop-blur-sm py-1.5 px-8 text-center border-b border-emerald-700/50">
-          <p className="text-[9px] font-medium text-emerald-50/80 uppercase tracking-[0.5em] flex items-center justify-center gap-2">
-            <ShieldCheck size={10} /> Mode Admin Aktif • Berbasis Cloud
-          </p>
-        </div>
-      )}
-
+      {/* Hide the Admin Banner since everyone is basically an editor now */}
       {/* Workspace Area - Distinct Background */}
       <main className="flex-1 overflow-hidden workspace-grid">
         <div className="max-w-[1600px] mx-auto h-full">
@@ -210,6 +217,11 @@ export default function Home() {
                     onAddChild={async (personId) => {
                         setEditPerson(null);
                         setPreselectedParentId(personId);
+                        setIsFormOpen(true);
+                    }}
+                    onAddChildToFamily={async (familyId) => {
+                        setEditPerson(null);
+                        setPreselectedFamilyId(familyId);
                         setIsFormOpen(true);
                     }}
                     onRefresh={refreshData}
@@ -234,6 +246,8 @@ export default function Home() {
             editPerson={editPerson}
             preselectedParentId={preselectedParentId || undefined}
             preselectedPartnerId={preselectedPartnerId || undefined}
+            preselectedFamilyId={preselectedFamilyId || undefined}
+            isAdmin={isAdmin}
             onSave={async (data) => {
               const result = editPerson ? await updatePerson(editPerson.id, data) : await addPerson(data);
               if (result.success) await refreshData();

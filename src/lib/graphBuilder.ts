@@ -41,30 +41,30 @@ export function buildGraph(people: Person[], families: Family[], children: Child
 
   // We will process generation by generation, but inside each generation, 
   // we group siblings together based on their parent family.
-  
+
   generations.forEach(gen => {
     const currentGenPeople = peopleByGen[gen];
-    
+
     // To keep it stable, we first identify those who haven't been processed yet
     // (Likely because they are "root" ancestors or were missed in the family walk)
-    
+
     // We want to sort the "entry points" of this generation by age
     const entries = currentGenPeople
-        .filter(p => !processedPersonIds.has(p.id))
-        .sort((a, b) => {
-            const yearA = a.birthDate ? new Date(a.birthDate).getFullYear() : 9999;
-            const yearB = b.birthDate ? new Date(b.birthDate).getFullYear() : 9999;
-            return yearA - yearB;
-        });
+      .filter(p => !processedPersonIds.has(p.id))
+      .sort((a, b) => {
+        const yearA = a.birthDate ? new Date(a.birthDate).getFullYear() : 9999;
+        const yearB = b.birthDate ? new Date(b.birthDate).getFullYear() : 9999;
+        return yearA - yearB;
+      });
 
     entries.forEach(person => {
-        addPersonAndSpouse(person.id);
+      addPersonAndSpouse(person.id);
     });
   });
 
   function addPersonAndSpouse(personId: string) {
     if (processedPersonIds.has(personId)) return;
-    
+
     const person = people.find(p => p.id === personId);
     if (!person) return;
 
@@ -79,7 +79,7 @@ export function buildGraph(people: Person[], families: Family[], children: Child
 
     // 2. Find all families this person is involved in
     const personFamilies = families.filter(f => f.partner1Id === person.id || f.partner2Id === person.id);
-    
+
     personFamilies.forEach(family => {
       if (processedFamilyIds.has(family.id)) return;
 
@@ -134,9 +134,9 @@ export function buildGraph(people: Person[], families: Family[], children: Child
         .map(rel => people.find(p => p.id === rel.childId))
         .filter((p): p is Person => !!p)
         .sort((a, b) => {
-            const yearA = a.birthDate ? new Date(a.birthDate).getFullYear() : 9999;
-            const yearB = b.birthDate ? new Date(b.birthDate).getFullYear() : 9999;
-            return yearA - yearB;
+          const yearA = a.birthDate ? new Date(a.birthDate).getFullYear() : 9999;
+          const yearB = b.birthDate ? new Date(b.birthDate).getFullYear() : 9999;
+          return yearA - yearB;
         });
 
       // We add edges in the sorted order. This helps ELK maintain the left-to-right age order.

@@ -12,6 +12,7 @@ interface PersonDetailProps {
   isAdmin?: boolean;
   onEdit?: (person: any) => void;
   onRefresh?: () => void;
+  onDelete?: (id: string) => void;
 }
 
 export default function PersonDetail({ person, onClose, isAdmin, onEdit, onRefresh }: PersonDetailProps) {
@@ -142,6 +143,18 @@ export default function PersonDetail({ person, onClose, isAdmin, onEdit, onRefre
                                 <p className="text-sm font-bold text-zinc-900 leading-relaxed group-hover:text-white transition-colors">{person.address}</p>
                             </div>
                         </button>
+                    )}
+
+                    {/* Danger Zone */}
+                    {isAdmin && (
+                        <div className="pt-4 border-t border-zinc-100">
+                            <button 
+                                onClick={handleDelete}
+                                className="w-full flex items-center justify-center gap-2 h-14 rounded-2xl bg-red-50 text-red-600 font-bold text-xs hover:bg-red-500 hover:text-white transition-all border border-red-100"
+                            >
+                                <Trash2 size={16} /> Hapus Anggota Keluarga
+                            </button>
+                        </div>
                     )}
 
                     {person.bio && (

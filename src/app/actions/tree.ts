@@ -163,6 +163,7 @@ export async function addChildToFamily(familyId: string, childId: string, type: 
 }
 
 export async function deletePerson(id: string) {
+    console.log("SERVER ACTION: Attempting to delete person:", id);
     try {
         // 1. Check if person exists
         const person = await prisma.person.findUnique({

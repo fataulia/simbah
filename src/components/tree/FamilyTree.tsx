@@ -19,7 +19,7 @@ import PersonDetail from './PersonDetail';
 import { buildGraph } from '@/lib/graphBuilder';
 import { getLayoutedElements } from '@/lib/layoutEngine';
 import { deletePerson } from '@/app/actions/tree';
-import { Download } from 'lucide-react';
+import { Download, TreeDeciduous, UserPlus } from 'lucide-react';
 import { exportToVectorPDF } from '@/lib/exportVectorPdf';
 
 const nodeTypes = {
@@ -36,6 +36,7 @@ interface FamilyTreeProps {
   onAddSpouse?: (id: string) => void;
   onAddChild?: (personId: string) => void;
   onAddChildToFamily?: (familyId: string) => void;
+  onAddRoot?: () => void;
   onRefresh?: () => void;
 }
 
@@ -48,6 +49,7 @@ export default function FamilyTree({
   onAddSpouse,
   onAddChild,
   onAddChildToFamily,
+  onAddRoot,
   onRefresh
 }: FamilyTreeProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -185,6 +187,29 @@ export default function FamilyTree({
   useEffect(() => {
     performLayout();
   }, [performLayout]);
+
+  if (initialPeople.length === 0 && !isLoading) {
+    return (
+      <div className="h-[calc(100vh-84px)] w-full flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-500">
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#10b981 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        <div className="z-10 flex flex-col items-center max-w-md text-center p-8 bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-100 dark:border-zinc-800">
+          <div className="h-20 w-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex flex-col items-center justify-center mb-6 text-emerald-600 dark:text-emerald-400">
+            <TreeDeciduous size={40} />
+          </div>
+          <h2 className="text-2xl font-black text-zinc-900 dark:text-white mb-2 tracking-tight">Silsilah Masih Kosong</h2>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-8 leading-relaxed">
+            Mulai bangun pohon keluarga ini dengan menambahkan anggota keluarga yang pertama (misalnya leluhur paling atas).
+          </p>
+          <button 
+            onClick={onAddRoot}
+            className="h-14 w-full rounded-2xl bg-emerald-600 text-white font-bold uppercase tracking-widest text-[11px] shadow-lg hover:bg-emerald-700 hover:shadow-emerald-600/20 transition-all flex items-center justify-center gap-3"
+          >
+            <UserPlus size={18} /> Tambahkan Anggota Pertama
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100vh-84px)] w-full relative overflow-hidden transition-colors duration-500">

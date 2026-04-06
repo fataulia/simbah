@@ -9,6 +9,7 @@ datasource db {
 
 model Person {
   id         String    @id @default(cuid())
+  lineageId  String
   name       String
   gender     Gender
   generation Int       @default(1)
@@ -23,17 +24,20 @@ model Person {
   updatedAt  DateTime  @updatedAt
   isDeceased Boolean   @default(false)
   asChild    Child[]
+  lineage    Lineage   @relation(fields: [lineageId], references: [id])
   partner1At Family[]  @relation("Partner1")
   partner2At Family[]  @relation("Partner2")
 }
 
 model Family {
   id         String   @id @default(cuid())
+  lineageId  String
   partner1Id String
   partner2Id String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   children   Child[]
+  lineage    Lineage  @relation(fields: [lineageId], references: [id])
   partner1   Person   @relation("Partner1", fields: [partner1Id], references: [id])
   partner2   Person?  @relation("Partner2", fields: [partner2Id], references: [id])
 }
@@ -49,10 +53,16 @@ model Child {
   @@unique([familyId, childId])
 }
 
-model AppConfig {
-  id         String   @id @default("config")
-  accessCode String   @default("simbah123")
-  updatedAt  DateTime @updatedAt
+
+
+model Lineage {
+  id         String   @id @default(cuid())
+  name       String
+  accessCode String   @unique
+  createdAt  DateTime @default(now())
+
+  persons    Person[]
+  families   Family[]
 }
 
 

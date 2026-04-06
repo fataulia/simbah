@@ -153,6 +153,13 @@ export default function Home() {
              </button>
           </div>
 
+          <button 
+             onClick={() => { setEditPerson(null); setIsFormOpen(true); }}
+             className="hidden sm:flex h-10 md:h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white transition-all hover:bg-emerald-700 shadow-md"
+           >
+             <UserPlus size={16} /> <span className="hidden md:inline">Tambah Anggota</span>
+          </button>
+
           <div className="flex items-center gap-3">
 
 
@@ -216,6 +223,13 @@ export default function Home() {
                     onAddChildToFamily={async (familyId) => {
                         setEditPerson(null);
                         setPreselectedFamilyId(familyId);
+                        setIsFormOpen(true);
+                    }}
+                    onAddRoot={() => {
+                        setEditPerson(null);
+                        setPreselectedParentId(null);
+                        setPreselectedPartnerId(null);
+                        setPreselectedFamilyId(null);
                         setIsFormOpen(true);
                     }}
                     onRefresh={refreshData}

@@ -2,18 +2,26 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getSessionLineageId } from "./auth";
 
 export async function getFamilyData() {
   try {
+    const lineageId = await getSessionLineageId();
+    if (!lineageId) throw new Error("Akses ditolak: Silakan masuk dengan kode silsilah Anda.");
+
     const people = await prisma.person.findMany({
+      where: { lineageId },
       orderBy: { generation: 'asc' }
     });
 
     const families = await (prisma as any).family.findMany({
+      where: { lineageId },
       include: { children: true }
     });
 
-    const children = await (prisma as any).child.findMany();
+    const children = await (prisma as any).child.findMany({
+       where: { family: { lineageId } }
+    });
 
     return {
       people: people.map(p => ({
@@ -40,8 +48,12 @@ export async function getFamilyData() {
 
 export async function addPerson(data: any) {
   try {
+    const lineageId = await getSessionLineageId();
+    if (!lineageId) throw new Error("Akses ditolak: Sesi habis, silakan muat ulang halaman.");
+
     const person = await prisma.person.create({
       data: {
+        lineageId,
         name: data.name,
         gender: data.gender,
         generation: typeof data.generation === 'number' ? data.generation : 1,
@@ -66,12 +78,15 @@ export async function addPerson(data: any) {
         });
     } else if (data.parentId) {
         let family = await (prisma as any).family.findFirst({
-            where: { OR: [{ partner1Id: data.parentId }, { partner2Id: data.parentId }] }
+            where: { 
+                lineageId, 
+                OR: [{ partner1Id: data.parentId }, { partner2Id: data.parentId }] 
+            }
         });
 
         if (!family) {
             family = await (prisma as any).family.create({
-                data: { partner1Id: data.parentId }
+                data: { partner1Id: data.parentId, lineageId }
             });
         }
 
@@ -98,6 +113,13 @@ export async function addPerson(data: any) {
 
 export async function updatePerson(id: string, data: any) {
     try {
+        const lineageId = await getSessionLineageId();
+        if (!lineageId) throw new Error("Akses ditolak.");
+
+        // ensure the person belongs to this lineage before updating
+        const existing = await prisma.person.findUnique({ where: { id } });
+        if (existing?.lineageId !== lineageId) throw new Error("Data tidak valid untuk silsilah ini.");
+
         const person = await prisma.person.update({
             where: { id },
             data: {
@@ -123,9 +145,13 @@ export async function updatePerson(id: string, data: any) {
 
 export async function addSpouse(personId: string, spouseId: string) {
   try {
-    // Check if family exists between these two
+    const lineageId = await getSessionLineageId();
+    if (!lineageId) throw new Error("Akses ditolak.");
+
+    // Check if family exists between these two in this lineage
     let family = await (prisma as any).family.findFirst({
         where: {
+            lineageId,
             OR: [
                 { partner1Id: personId, partner2Id: spouseId },
                 { partner1Id: spouseId, partner2Id: personId }
@@ -136,6 +162,7 @@ export async function addSpouse(personId: string, spouseId: string) {
     if (!family) {
         family = await (prisma as any).family.create({
             data: {
+                lineageId,
                 partner1Id: personId,
                 partner2Id: spouseId,
             },
@@ -150,6 +177,13 @@ export async function addSpouse(personId: string, spouseId: string) {
 
 export async function addChildToFamily(familyId: string, childId: string, type: 'BIOLOGICAL' | 'ADOPTED' | 'STEPCHILD' = 'BIOLOGICAL') {
   try {
+    const lineageId = await getSessionLineageId();
+    if (!lineageId) throw new Error("Akses ditolak.");
+
+    // Verify family belongs to current lineage
+    const familyCheck = await prisma.family.findUnique({ where: { id: familyId } });
+    if (familyCheck?.lineageId !== lineageId) throw new Error("Silsilah keluarga salah.");
+
     const child = await (prisma as any).child.upsert({
         where: { familyId_childId: { familyId, childId } },
         create: { familyId, childId, relationshipType: type },
@@ -163,9 +197,11 @@ export async function addChildToFamily(familyId: string, childId: string, type: 
 }
 
 export async function deletePerson(id: string) {
-    console.log("SERVER ACTION: Attempting to delete person:", id);
     try {
-        // 1. Check if person exists
+        const lineageId = await getSessionLineageId();
+        if (!lineageId) throw new Error("Akses ditolak.");
+
+        // 1. Check if person exists AND belongs to lineage
         const person = await prisma.person.findUnique({
             where: { id },
             include: {
@@ -174,7 +210,7 @@ export async function deletePerson(id: string) {
             } as any
         });
 
-       if (!person) {
+       if (!person || person.lineageId !== lineageId) {
             return { success: false, error: "Data anggota tidak ditemukan." };
         }
 
@@ -189,8 +225,9 @@ export async function deletePerson(id: string) {
             };
         }
 
-        // 3. Clean up relationships
-        // Delete links where this person is a child
+        // 3. Clean up relationships (Child relation handles itself with onDelete: Cascade? Actually child table doesn't have cascade for childId? Oh wait, it does! "onDelete: Cascade" is in schema)
+        // Wait, the schema has: child Person @relation(fields: [childId], references: [id], onDelete: Cascade)
+        // But to be safe, delete them manually first just like the old code.
         await (prisma as any).child.deleteMany({ where: { childId: id } });
         
         // Delete family units where this person is a partner
